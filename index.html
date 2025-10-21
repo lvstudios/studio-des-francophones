@@ -1,205 +1,117 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Le Studio des Francophones</title>
-  <meta name="description" content="Studio Scratch réservé aux parlants français — communauté moderne des francophones" />
-  <style>
-    :root{
-      --bg:#0f1724;
-      --card:#0b1220;
-      --accent:#0ea5a4;
-      --glass: rgba(255,255,255,0.04);
-      --text:#e6eef4;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Arial;background:linear-gradient(180deg,#071422 0%,var(--bg) 100%);color:var(--text);-webkit-font-smoothing:antialiased}
-    .wrap{max-width:1100px;margin:36px auto;padding:24px}
-    header{display:flex;align-items:center;gap:18px}
-    .logo{width:72px;height:72px;border-radius:12px;background:linear-gradient(135deg,#1e293b,#0ea5a4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
-    h1{margin:0;font-size:28px}
-    p.lead{color:rgba(230,238,244,0.82);margin-top:6px}
-
-    .controls{margin-top:18px;display:flex;gap:12px;align-items:center}
-    .btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;color:var(--text);cursor:pointer}
-    .btn.--accent{background:linear-gradient(90deg,#0ea5a4,#06b6d4);color:#042024;border:none}
-
-    .flags-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:18px;margin-top:26px}
-
-    /* Carte flag (3D-ish) */
-    .flag-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:14px;border-radius:14px;backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;min-height:160px;transform-style:preserve-3d;perspective:1000px}
-
-    .flag-wrap{width:100%;height:100px;display:flex;align-items:center;justify-content:center}
-    .flag{width:84%;height:88px;border-radius:8px;object-fit:cover;box-shadow:0 10px 30px rgba(2,6,23,0.6);transition:transform .6s cubic-bezier(.2,.9,.3,1), box-shadow .2s}
-
-    /* effet 3D quand enabled */
-    .flag-card[data-3d="true"] .flag{transform:rotateX(12deg) rotateY(-6deg) translateZ(6px)}
-    .flag-card:hover .flag{transform:translateY(-6px) rotateX(12deg) rotateY(-6deg) scale(1.03)}
-
-    .flag-title{font-weight:700}
-    .flag-sub{font-size:13px;color:rgba(230,238,244,0.7)}
-
-    footer{margin-top:36px;padding-top:18px;border-top:1px dashed rgba(255,255,255,0.03);display:flex;justify-content:space-between;align-items:center}
-
-    /* Modal */
-    .modal{position:fixed;inset:0;background:linear-gradient(0deg,rgba(1,6,11,0.7),rgba(1,6,11,0.85));display:flex;align-items:center;justify-content:center;z-index:80;opacity:0;pointer-events:none;transition:opacity .18s}
-    .modal.open{opacity:1;pointer-events:auto}
-    .modal-card{background:var(--card);padding:18px;border-radius:12px;max-width:900px;width:92%;box-shadow:0 12px 40px rgba(2,6,23,0.6)}
-    .modal img{width:100%;height:300px;object-fit:contain;border-radius:8px}
-
-    /* responsive */
-    @media (max-width:560px){.flag{height:64px}.flag-wrap{height:72px}.logo{width:60px;height:60px}}
-
-    /* small helper */
-    .hint{font-size:13px;color:rgba(230,238,244,0.65)}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le Studio des Francophones</title>
+<style>
+  body{font-family:Inter, Arial, sans-serif;background:#071422;color:#e6eef4;margin:0;padding:20px}
+  header{display:flex;gap:16px;align-items:center}
+  .logo{width:64px;height:64px;border-radius:10px;background:linear-gradient(135deg,#0ea5a4,#06b6d4);display:flex;align-items:center;justify-content:center;font-weight:700}
+  h1{margin:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;margin-top:20px}
+  .card{background:rgba(255,255,255,0.03);padding:12px;border-radius:10px}
+  .thumb{width:100%;height:180px;object-fit:cover;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.6)}
+  .meta{margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+  .btn{padding:6px 10px;border-radius:8px;border:none;background:#0ea5a4;color:#022;cursor:pointer}
+  footer{margin-top:28px;color:rgba(230,238,244,0.65)}
+  .iframe-wrap{width:100%;height:402px;border:0}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">SF</div>
-      <div>
-        <h1>Le Studio des Francophones</h1>
-        <p class="lead">Un studio Scratch réservé aux parlants français modernes — communauté, projets, ateliers et événements.</p>
-        <div class="controls">
-          <button class="btn --accent" id="toggle3d">Activer l'effet 3D</button>
-          <button class="btn" id="addFlagBtn">Ajouter un drapeau</button>
-          <span class="hint">Exportez vos drapeaux depuis Figma et mettez-les dans <code>assets/flags/</code></span>
-        </div>
-      </div>
-    </header>
-
-    <section class="flags-grid" id="flagsGrid">
-      <!-- Les cartes seront générées par JavaScript. Voir le script en bas. -->
-    </section>
-
-    <footer>
-      <div>© <strong>Le Studio des Francophones</strong> — Communauté moderne</div>
-      <div class="hint">Créé pour vous, Louis. Besoin d'ajustements ?</div>
-    </footer>
+<header>
+  <div class="logo">SF</div>
+  <div>
+    <h1>Le Studio des Francophones</h1>
+    <div>Studio Scratch réservé aux parlants français — projets récents automatiquement importés depuis la page du studio.</div>
   </div>
+</header>
 
-  <!-- Modal preview -->
-  <div id="modal" class="modal" role="dialog" aria-hidden="true">
-    <div class="modal-card">
-      <button class="btn" id="closeModal" style="float:right;margin-bottom:8px">Fermer</button>
-      <img id="modalImg" src="" alt="Aperçu drapeau" />
-      <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn" id="downloadBtn">Télécharger</button>
+<main>
+  <section style="margin-top:18px">
+    <button class="btn" id="refreshBtn">Mettre à jour maintenant</button>
+    <span id="status" style="margin-left:12px;color:rgba(230,238,244,0.75)"></span>
+  </section>
+
+  <section class="grid" id="projectsGrid" aria-live="polite"></section>
+</main>
+
+<footer>
+  © Le Studio des Francophones — créé pour toi, Louis.
+</footer>
+
+<script>
+const projectsGrid = document.getElementById('projectsGrid');
+const status = document.getElementById('status');
+const refreshBtn = document.getElementById('refreshBtn');
+
+async function loadProjects() {
+  status.textContent = 'Chargement...';
+  try {
+    const res = await fetch('/projects.json', {cache: 'no-store'});
+    if(!res.ok) throw new Error('projects.json introuvable');
+    const projects = await res.json();
+    renderProjects(projects);
+    status.textContent = `${projects.length} projets affichés`;
+  } catch (e) {
+    projectsGrid.innerHTML = '<div style="color:#f88">Impossible de charger les projets. Lance /update-studio sur le serveur.</div>';
+    status.textContent = 'Erreur';
+    console.error(e);
+  }
+}
+
+function renderProjects(list) {
+  if(!list || list.length===0) { projectsGrid.innerHTML = '<div>Aucun projet trouvé.</div>'; return; }
+  projectsGrid.innerHTML = '';
+  list.forEach(p => {
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.innerHTML = `
+      <div style="font-weight:700">${escapeHtml(p.title)}</div>
+      <div style="font-size:13px;color:rgba(230,238,244,0.7)">par ${escapeHtml(p.author)}</div>
+      ${p.thumbnail ? `<img class="thumb" src="${p.thumbnail}" alt="${escapeHtml(p.title)}">` : ''}
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="btn" onclick="openEmbed(${p.id})">Voir (embed)</button>
+        <a class="btn" style="text-decoration:none" href="${p.url}" target="_blank" rel="noopener">Page Scratch</a>
       </div>
+    `;
+    projectsGrid.appendChild(el);
+  });
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c])); }
+
+function openEmbed(id){
+  // on remplace la grille par l'iframe du projet pour le voir
+  projectsGrid.innerHTML = `
+    <div class="card">
+      <div style="margin-bottom:8px"><button class="btn" onclick="loadProjects()">Retour</button></div>
+      <iframe class="iframe-wrap" src="https://scratch.mit.edu/projects/${id}/embed" allowtransparency="true" frameborder="0" scrolling="no" allowfullscreen></iframe>
     </div>
-  </div>
+  `;
+}
 
-  <script>
-    // LISTE DES DRAPEAUX (modifiez ici ou remplacez par du HTML statique)
-    const flags = [
-      {id: 'fr', name: 'France', file: 'assets/flags/france.png', note: 'Français moderne'},
-      {id: 'be', name: 'Belgique', file: 'assets/flags/belgique.png', note: 'Communautés FWB'},
-      {id: 'qc', name: 'Québec', file: 'assets/flags/quebec.png', note: 'Francophonie nord-américaine'},
-      {id: 'ch', name: 'Suisse', file: 'assets/flags/suisse.png', note: 'Cantons francophones'},
-      {id: 'cm', name: 'Cameroun', file: 'assets/flags/cameroun.png', note: 'Francophonie Afrique'},
-    ];
-
-    const flagsGrid = document.getElementById('flagsGrid');
-    const toggle3dBtn = document.getElementById('toggle3d');
-    const addFlagBtn = document.getElementById('addFlagBtn');
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modalImg');
-    const closeModal = document.getElementById('closeModal');
-    const downloadBtn = document.getElementById('downloadBtn');
-
-    let enabled3D = false;
-
-    function renderFlags(){
-      flagsGrid.innerHTML = '';
-      flags.forEach(f => {
-        const card = document.createElement('article');
-        card.className = 'flag-card';
-        card.setAttribute('data-3d', String(enabled3D));
-
-        const wrap = document.createElement('div');
-        wrap.className = 'flag-wrap';
-
-        const img = document.createElement('img');
-        img.className = 'flag';
-        img.alt = f.name + ' - drapeau';
-        img.src = f.file; // Assurez-vous que le fichier existe dans assets/flags/
-        img.onerror = () => { img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(fallbackSVG(f.name)); };
-
-        wrap.appendChild(img);
-
-        const title = document.createElement('div');
-        title.className = 'flag-title';
-        title.innerText = f.name;
-
-        const sub = document.createElement('div');
-        sub.className = 'flag-sub';
-        sub.innerText = f.note || '';
-
-        card.appendChild(wrap);
-        card.appendChild(title);
-        card.appendChild(sub);
-
-        // click to open modal
-        img.addEventListener('click', ()=>{
-          openModal(f.file, f.name);
-        });
-
-        flagsGrid.appendChild(card);
-      });
+// bouton forcer mise à jour (appelle le serveur)
+refreshBtn.addEventListener('click', async ()=>{
+  status.textContent = 'Mise à jour en cours...';
+  try {
+    const r = await fetch('/update-studio');
+    const j = await r.json();
+    if(j.ok) {
+      await loadProjects();
+      status.textContent = `Mis à jour: ${j.projects} projets`;
+    } else {
+      status.textContent = 'Échec mise à jour';
+      console.error(j);
     }
+  } catch(e) {
+    status.textContent = 'Erreur lors de la mise à jour';
+    console.error(e);
+  }
+});
 
-    function fallbackSVG(name){
-      return ` <svg xmlns='http://www.w3.org/2000/svg' width='800' height='480'><rect width='100%' height='100%' fill='%23081b2c'/><text x='50%' y='50%' fill='%23fff' font-size='28' text-anchor='middle' font-family='Arial' dy='0.35em'>Drapeau: ${name}</text></svg>`;
-    }
-
-    function openModal(src, name){
-      modal.classList.add('open');
-      modal.setAttribute('aria-hidden','false');
-      modalImg.src = src;
-      modalImg.alt = name + ' — aperçu';
-      downloadBtn.onclick = ()=>{ downloadImage(src, name + '-flag.png'); }
-    }
-
-    function closeModalFn(){
-      modal.classList.remove('open');
-      modal.setAttribute('aria-hidden','true');
-      modalImg.src = '';
-    }
-
-    function downloadImage(url, filename){
-      // Tentative de télécharger l'image. Si cross-origin bloque, l'utilisateur doit droit-clic -> enregistrer.
-      fetch(url).then(r=>r.blob()).then(blob=>{
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      }).catch(()=>{ alert('Impossible de télécharger automatiquement — faites clic-droit sur l\'image et "Enregistrer sous".'); });
-    }
-
-    toggle3dBtn.addEventListener('click', ()=>{
-      enabled3D = !enabled3D;
-      toggle3dBtn.innerText = enabled3D ? 'Désactiver l\'effet 3D' : 'Activer l\'effet 3D';
-      document.querySelectorAll('.flag-card').forEach(c=> c.setAttribute('data-3d', String(enabled3D)));
-    });
-
-    addFlagBtn.addEventListener('click', ()=>{
-      const name = prompt('Nom du pays (ex: France)');
-      if(!name) return;
-      const filename = prompt('Nom du fichier relatif dans assets/flags/ (ex: france.png)');
-      if(!filename) return;
-      flags.push({id:Date.now(), name, file: 'assets/flags/' + filename, note: 'Ajouté manuellement'});
-      renderFlags();
-    });
-
-    closeModal.addEventListener('click', closeModalFn);
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModalFn(); });
-
-    // rendu initial
-    renderFlags();
-  </script>
+// load at start
+loadProjects();
+</script>
 </body>
 </html>
